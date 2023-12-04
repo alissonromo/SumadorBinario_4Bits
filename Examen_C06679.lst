@@ -1,0 +1,479 @@
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+Warning[205]: Found directive in column 1. (list)
+                      00001 list p=16f84a
+Warning[205]: Found directive in column 1. (include)
+                      00002 include <p16f84.inc>
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC16F84 processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+Message[301]: MESSAGE: (Processor-header file mismatch.  Verify selected processor.)
+                      00206         LIST
+                      00003 
+Warning[205]: Found directive in column 1. (__CONFIG)
+2007   3FF1           00004 __CONFIG _CP_OFF&_WDT_OFF&_PWRTE_ON&_XT_OSC
+                      00005 
+                      00006 #define posiciones .20 ; posiciones a ocupar en la RAM
+                      00007 #define inicial 0x27 ; Primera dirección a almacenar
+                      00008 
+  00000020            00009 PRIMER_NUMERO EQU 0x20
+  00000021            00010 SEGUNDO_NUMERO EQU 0x21
+  00000022            00011 RESULTADO_NUMERO EQU 0x22
+  00000023            00012 CAMBIO_DE_NUMERO equ 0x23
+                      00013 
+Warning[205]: Found directive in column 1. (org)
+0000                  00014 org 0x00 ; Posición de memoria de prog. que comienza
+                      00015 
+0000                  00016 Inicio 
+0000   1683           00017         BSF STATUS, RP0
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0001   0185           00018         CLRF TRISA
+0002   0185           00019         CLRF PORTA
+0003   30FF           00020         MOVLW B'11111111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0004   0085           00021         MOVWF TRISA
+                      00022 
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0005   0186           00023         clrf TRISB
+0006   0186           00024         clrf PORTB
+0007   3000           00025         MOVLW B'00000000'
+0008   0086           00026         MOVWF PORTB
+0009   1283           00027         BCF STATUS, RP0
+                      00028 
+000A   3000           00029         MOVLW B'00000000'
+000B   0086           00030         MOVWF PORTB
+                      00031 
+                      00032 ;------------------- ESCRITURA -------------------      
+                      00033 
+000C   3001           00034         movlw .1
+000D   00A3           00035         movwf CAMBIO_DE_NUMERO
+000E   0103           00036         CLRW
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000F   00A0           00037         movwf PRIMER_NUMERO
+0010   00A1           00038         movwf SEGUNDO_NUMERO
+Warning[219]: Invalid RAM location specified.
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0011   00FF           00039         movwf RESULTADO
+0012   3026           00040         movlw inicial-1
+0013   0084           00041         movwf FSR ; puntero = posición anterior a la inicial
+                      00042 
+                      00043 
+0014   2015           00044         call START
+                      00045 
+                      00046 ;------------------------ PULSADORES --------------------
+0015                  00047 START
+                      00048         
+0015   201C           00049         CALL PULSADOR_UNO
+                      00050 
+0016   201F           00051         CALL PULSADOR_DOS
+                      00052         
+0017   2022           00053         CALL PULSADOR_CUATRO
+                      00054         
+0018   2025           00055         CALL PULSADOR_OCHO
+                      00056 
+0019   2028           00057         CALL PULSADOR_NUEVO_NUM
+                      00058 
+001A   202B           00059         CALL PULSADOR_RESULTADO
+                      00060         
+001B   2815           00061         GOTO START
+                      00062 
+                      00063 
+001C                  00064 PULSADOR_UNO
+001C   1805           00065         BTFSC PORTA,0 ;PULSADORADELANTE ;(PORTA, 0) 
+                      00066         ;CALL UNO_NUM
+001D   283A           00067         GOTO UNO
+001E   0008           00068         RETURN
+                      00069 
+001F                  00070 PULSADOR_DOS
+001F   1885           00071         BTFSC PORTA,1 ;STOP ;(PORTA, 1) 
+0020   2842           00072         GOTO DOS        
+0021   0008           00073         RETURN 
+                      00074 
+0022                  00075 PULSADOR_CUATRO
+0022   1905           00076         BTFSC PORTA,2 ;PULSADORRETROCEDER ;(PORTA, 2) 
+0023   284A           00077         GOTO CUATRO
+0024   0008           00078         RETURN
+                      00079 
+0025                  00080 PULSADOR_OCHO
+0025   1985           00081         BTFSC PORTA,3 ;PULSADORDERECHA ;(PORTA, 3) 
+0026   2852           00082         GOTO OCHO
+0027   0008           00083         RETURN
+                      00084 
+0028                  00085 PULSADOR_NUEVO_NUM
+0028   1A05           00086         BTFSC PORTA,4  ;PULSADORIZQUIERDA ;(PORTA, 4)  
+0029   287A           00087         GOTO NUEVO_SUMA
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+002A   0008           00088         RETURN
+                      00089 
+002B                  00090 PULSADOR_RESULTADO
+002B   1A86           00091         BTFSC PORTB,5 ;PULSADORCOMENZAR ; (PORTB, 1) 
+002C   287F           00092         GOTO RESULTADO
+002D   0008           00093         RETURN
+                      00094 
+                      00095 ;------------------------- MANEJO DE SUMAS DE LOS NÚMEROS ------------------------------
+                      00096 
+002E                  00097 UNO_NUM
+                      00098 ;       BTFSC CAMBIO_DE_NUMERO,1
+002E   283A           00099         GOTO UNO
+002F   285A           00100         GOTO UNO_SEGUNDO
+0030   0008           00101         RETURN
+                      00102 
+0031                  00103 DOS_NUM
+                      00104 ;       BTFSC CAMBIO_DE_NUMERO
+0031   2842           00105         GOTO DOS
+0032   2862           00106         GOTO DOS_SEGUNDO
+0033   0008           00107         RETURN
+                      00108 
+0034                  00109 CUATRO_NUM
+                      00110 ;       BTFSC CAMBIO_DE_NUMERO
+0034   284A           00111         GOTO CUATRO
+0035   286A           00112         GOTO CUATRO_SEGUNDO
+0036   0008           00113         RETURN
+                      00114 
+0037                  00115 OCHO_NUM
+                      00116 ;       BTFSC CAMBIO_DE_NUMERO
+0037   2852           00117         GOTO OCHO
+0038   2872           00118         GOTO OCHO_SEGUNDO
+0039   0008           00119         RETURN
+                      00120 
+                      00121 
+                      00122 ; -------------------- MANEJO DE SUMAS PRIMER NUMERO ------------------------------------
+003A                  00123 UNO
+003A   1805           00124         BTFSC PORTA,0
+003B   283A           00125         GOTO UNO
+                      00126 
+Message[305]: Using default destination of 1 (file).
+003C   0A84           00127         incf FSR
+003D   0080           00128         movwf INDF 
+                      00129 
+003E   3001           00130          movlw .1 
+Warning[202]: Argument out of range.  Least significant bits used.
+003F   0720           00131          addwf PRIMER_NUMERO,PRIMER_NUMERO ; PRIMER_NUMERO = PRIMER_NUMERO + W 
+0040   00A0           00132          movwf PRIMER_NUMERO ; RES1 = 5 
+                      00133 
+0041   0008           00134         RETURN
+                      00135 
+0042                  00136 DOS
+0042   1885           00137         BTFSC PORTA,1
+0043   2842           00138         GOTO DOS
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00139 
+Message[305]: Using default destination of 1 (file).
+0044   0A84           00140         incf FSR 
+0045   0080           00141         movwf INDF 
+                      00142 
+0046   3002           00143         movlw .2 
+Warning[202]: Argument out of range.  Least significant bits used.
+0047   0720           00144         addwf PRIMER_NUMERO,PRIMER_NUMERO 
+0048   00A0           00145         movwf PRIMER_NUMERO 
+                      00146 
+0049   0008           00147         RETURN
+                      00148 
+004A                  00149 CUATRO
+004A   1905           00150         BTFSC PORTA,2
+004B   284A           00151         GOTO CUATRO
+                      00152 
+Message[305]: Using default destination of 1 (file).
+004C   0A84           00153         incf FSR ; Apunta a la siguiente posición
+004D   0080           00154         movwf INDF ; Dato --> INDF      decf NUMERO
+                      00155  
+004E   3004           00156         movlw .4 
+Warning[202]: Argument out of range.  Least significant bits used.
+004F   0720           00157         addwf PRIMER_NUMERO,PRIMER_NUMERO
+0050   00A0           00158         movwf PRIMER_NUMERO  
+                      00159 
+0051   0008           00160         RETURN
+                      00161 
+0052                  00162 OCHO
+0052   1985           00163         BTFSC PORTA,3
+0053   2852           00164         GOTO OCHO
+                      00165 
+Message[305]: Using default destination of 1 (file).
+0054   0A84           00166         incf FSR 
+0055   0080           00167         movwf INDF 
+                      00168  
+0056   3008           00169         movlw .8 
+Warning[202]: Argument out of range.  Least significant bits used.
+0057   0720           00170         addwf PRIMER_NUMERO,PRIMER_NUMERO
+0058   00A0           00171         movwf PRIMER_NUMERO  
+0059   0008           00172         RETURN
+                      00173 
+                      00174 
+                      00175 ; -------------------- MANEJO DE SUMAS SEGUNDO NUMERO ------------------------------------
+005A                  00176 UNO_SEGUNDO
+005A   1805           00177         BTFSC PORTA,0
+005B   283A           00178         GOTO UNO
+                      00179 
+Message[305]: Using default destination of 1 (file).
+005C   0A84           00180         incf FSR
+005D   0080           00181         movwf INDF 
+                      00182 
+005E   3001           00183         movlw .1 
+Warning[202]: Argument out of range.  Least significant bits used.
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+005F   07A1           00184         addwf SEGUNDO_NUMERO,SEGUNDO_NUMERO 
+0060   00A1           00185         movwf SEGUNDO_NUMERO  
+0061   0008           00186         RETURN
+                      00187 
+0062                  00188 DOS_SEGUNDO
+0062   1885           00189         BTFSC PORTA,1
+0063   2842           00190         GOTO DOS
+                      00191 
+Message[305]: Using default destination of 1 (file).
+0064   0A84           00192         incf FSR 
+0065   0080           00193         movwf INDF 
+                      00194 
+0066   3002           00195         movlw .2 
+Warning[202]: Argument out of range.  Least significant bits used.
+0067   07A1           00196         addwf SEGUNDO_NUMERO,SEGUNDO_NUMERO 
+0068   00A1           00197         movwf SEGUNDO_NUMERO  
+0069   0008           00198         RETURN
+                      00199 
+006A                  00200 CUATRO_SEGUNDO
+006A   1905           00201         BTFSC PORTA,2
+006B   284A           00202         GOTO CUATRO
+                      00203 
+Message[305]: Using default destination of 1 (file).
+006C   0A84           00204         incf FSR ; Apunta a la siguiente posición
+006D   0080           00205         movwf INDF ; Dato --> INDF      decf NUMERO
+                      00206  
+006E   3004           00207         movlw .4 
+Warning[202]: Argument out of range.  Least significant bits used.
+006F   07A1           00208         addwf SEGUNDO_NUMERO,SEGUNDO_NUMERO 
+0070   00A1           00209         movwf SEGUNDO_NUMERO
+0071   0008           00210         RETURN
+                      00211 
+0072                  00212 OCHO_SEGUNDO
+0072   1985           00213         BTFSC PORTA,3
+0073   2852           00214         GOTO OCHO
+                      00215 
+Message[305]: Using default destination of 1 (file).
+0074   0A84           00216         incf FSR 
+0075   0080           00217         movwf INDF 
+                      00218  
+0076   3008           00219         movlw .8 
+Warning[202]: Argument out of range.  Least significant bits used.
+0077   07A1           00220         addwf SEGUNDO_NUMERO,SEGUNDO_NUMERO 
+0078   00A1           00221         movwf SEGUNDO_NUMERO 
+0079   0008           00222         RETURN
+                      00223 
+                      00224 ; -------------------------- CAMBIO DE NÚMERO -------------------
+                      00225 
+007A                  00226 NUEVO_SUMA
+007A   1A05           00227         BTFSC PORTA,4
+007B   287A           00228         GOTO NUEVO_SUMA
+                      00229         
+007C   3000           00230         movlw .0 
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+007D   00A1           00231         movwf SEGUNDO_NUMERO ; CAMBIA LA BANDERA PARA ALMACENAR EN EL SEGUNDO NUMERO
+                      00232 
+007E   0008           00233         RETURN
+                      00234 
+007F                  00235 RESULTADO
+007F   1A86           00236         BTFSC PORTB,5
+0080   287F           00237         GOTO RESULTADO
+                      00238         
+0081   0820           00239         movf PRIMER_NUMERO,W ; W = NUMERO
+0082   0086           00240         MOVWF PORTB
+                      00241 
+0083   0008           00242         RETURN
+                      00243 
+Warning[205]: Found directive in column 1. (END)
+                      00244 END
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  7
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+C                                 00000000
+CAMBIO_DE_NUMERO                  00000023
+CUATRO                            0000004A
+CUATRO_NUM                        00000034
+CUATRO_SEGUNDO                    0000006A
+DC                                00000001
+DOS                               00000042
+DOS_NUM                           00000031
+DOS_SEGUNDO                       00000062
+EEADR                             00000009
+EECON1                            00000088
+EECON2                            00000089
+EEDATA                            00000008
+EEIE                              00000006
+EEIF                              00000004
+F                                 00000001
+FSR                               00000004
+GIE                               00000007
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+Inicio                            00000000
+NOT_PD                            00000003
+NOT_RBPU                          00000007
+NOT_TO                            00000004
+NUEVO_SUMA                        0000007A
+OCHO                              00000052
+OCHO_NUM                          00000037
+OCHO_SEGUNDO                      00000072
+OPTION_REG                        00000081
+PCL                               00000002
+PCLATH                            0000000A
+PORTA                             00000005
+PORTB                             00000006
+PRIMER_NUMERO                     00000020
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+PULSADOR_CUATRO                   00000022
+PULSADOR_DOS                      0000001F
+PULSADOR_NUEVO_NUM                00000028
+PULSADOR_OCHO                     00000025
+PULSADOR_RESULTADO                0000002B
+PULSADOR_UNO                      0000001C
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  8
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RD                                00000000
+RESULTADO                         0000007F
+RESULTADO_NUMERO                  00000022
+RP0                               00000005
+RP1                               00000006
+SEGUNDO_NUMERO                    00000021
+START                             00000015
+STATUS                            00000003
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+UNO                               0000003A
+UNO_NUM                           0000002E
+UNO_SEGUNDO                       0000005A
+W                                 00000000
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+_CONFIG                           00002007
+_CP_OFF                           00003FFF
+_CP_ON                            0000000F
+_FOSC_EXTRC                       00003FFF
+_FOSC_HS                          00003FFE
+MPASM  5.51                 EXAMEN_C06679.ASM   11-22-2023  16:26:10         PAGE  9
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_FOSC_LP                          00003FFC
+_FOSC_XT                          00003FFD
+_HS_OSC                           00003FFE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_LP_OSC                           00003FFC
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FFD
+__16F84A                          00000001
+inicial                           0x27
+posiciones                        .20
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0080 : XXXX------------ ---------------- ---------------- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   132
+Program Memory Words Free:   892
+
+
+Errors   :     0
+Warnings :    14 reported,     0 suppressed
+Messages :    13 reported,     0 suppressed
+
+
